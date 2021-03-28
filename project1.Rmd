@@ -1,0 +1,122 @@
+---
+title: "Project1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(tidyverse, tidycensus,leaflet, sf)
+```
+
+```{r}
+census_api_key("4164f675c6d35b601029ed68e31ec5150dac968f")
+
+collect <- function(year, table, geometry = FALSE){
+  temp <- get_acs(geography = 'county',
+          state = "PA",
+          year = year,
+          table = table,
+          geometry = geometry,
+          cache_table = TRUE,
+          output = "wide",
+          survey = "acs1"
+          ) %>% 
+    rename(geoid = GEOID) %>% 
+    mutate(year = year)
+           
+  temp %>% 
+    mutate(county = str_extract(temp$NAME, "[[:alpha:]]*[[:blank:]](?=County)")) %>% 
+    select(geoid, year, county, ends_with("E"), -NAME, -ends_with("PE")) 
+}
+```
+
+```{r}
+SC_2010 <- collect(2010, "DP02", geometry = TRUE)
+SC_2011 <- collect(2011, "DP02", geometry = TRUE)
+SC_2012 <- collect(2012, "DP02", geometry = TRUE)
+SC_2013 <- collect(2013, "DP02", geometry = TRUE)
+SC_2014 <- collect(2014, "DP02", geometry = TRUE)
+SC_2015 <- collect(2015, "DP02", geometry = TRUE)
+SC_2016 <- collect(2016, "DP02", geometry = TRUE)
+SC_2017 <- collect(2017, "DP02", geometry = TRUE)
+SC_2018 <- collect(2018, "DP02", geometry = TRUE)
+SC_2019 <- collect(2019, "DP02", geometry = TRUE)
+
+EC_2010 <- collect(2010, "DP03", geometry = TRUE)
+EC_2011 <- collect(2011, "DP03", geometry = TRUE)
+EC_2012 <- collect(2012, "DP03", geometry = TRUE)
+EC_2013 <- collect(2013, "DP03", geometry = TRUE)
+EC_2014 <- collect(2014, "DP03", geometry = TRUE)
+EC_2015 <- collect(2015, "DP03", geometry = TRUE)
+EC_2016 <- collect(2016, "DP03", geometry = TRUE)
+EC_2017 <- collect(2017, "DP03", geometry = TRUE)
+EC_2018 <- collect(2018, "DP03", geometry = TRUE)
+EC_2019 <- collect(2019, "DP03", geometry = TRUE)
+
+HC_2010 <- collect(2010, "DP04", geometry = TRUE)
+HC_2011 <- collect(2011, "DP04", geometry = TRUE)
+HC_2012 <- collect(2012, "DP04", geometry = TRUE)
+HC_2013 <- collect(2013, "DP04", geometry = TRUE)
+HC_2014 <- collect(2014, "DP04", geometry = TRUE)
+HC_2015 <- collect(2015, "DP04", geometry = TRUE)
+HC_2016 <- collect(2016, "DP04", geometry = TRUE)
+HC_2017 <- collect(2017, "DP04", geometry = TRUE)
+HC_2018 <- collect(2018, "DP04", geometry = TRUE)
+HC_2019 <- collect(2019, "DP04", geometry = TRUE)
+
+DC_2010 <- collect(2010, "DP05", geometry = TRUE)
+DC_2011 <- collect(2011, "DP05", geometry = TRUE)
+DC_2012 <- collect(2012, "DP05", geometry = TRUE)
+DC_2013 <- collect(2013, "DP05", geometry = TRUE)
+DC_2014 <- collect(2014, "DP05", geometry = TRUE)
+DC_2015 <- collect(2015, "DP05", geometry = TRUE)
+DC_2016 <- collect(2016, "DP05", geometry = TRUE)
+DC_2017 <- collect(2017, "DP05", geometry = TRUE)
+DC_2018 <- collect(2018, "DP05", geometry = TRUE)
+DC_2019 <- collect(2019, "DP05", geometry = TRUE)
+```
+
+```{r}
+ACS <- bind_cols(
+bind_rows(SC_2010, SC_2011, SC_2012, SC_2013, SC_2014, SC_2015, SC_2016, SC_2017, SC_2018, SC_2019
+),
+bind_rows(EC_2010, EC_2011, EC_2012, EC_2013, EC_2014, EC_2015, EC_2016, EC_2017, EC_2018, EC_2019
+),
+bind_rows(HC_2010, HC_2011, HC_2012, HC_2013, HC_2014, HC_2015, HC_2016, HC_2017, HC_2018, HC_2019
+),
+bind_rows(DC_2010, DC_2011, DC_2012, DC_2013, DC_2014, DC_2015, DC_2016, DC_2017, DC_2018, DC_2019
+)) %>% 
+  select(1,2,3,ends_with("E")) %>% 
+  rename("geoid" = 1,
+         "year" = 2, 
+         "county" = 3,
+         )
+```
+
+```{r}
+get_labels <- function(x) {
+  df <-  read_csv(x, col_names = FALSE, skip = 2) 
+  
+  df <- df %>% 
+    slice(seq(1, as.integer(count(df)), 4))
+  df <- df %>% 
+    mutate(variable_c = str_remove(df$X1,"E")) %>% 
+    separate(X2, into = c('f','a','b','c','d','e'), sep = "!!") %>% 
+    select(-X1,-f)
+}
+
+
+#This line combines the labels that we created from the earlier lines of code
+#into one large data set that contains all of the labels.
+
+census_labels <- bind_rows(get_labels("ACSDP5Y2019.DP02_metadata_2021-03-09T174642.csv"), get_labels("ACSDP5Y2019.DP03_metadata_2021-03-09T174642.csv"), get_labels("ACSDP5Y2019.DP04_metadata_2021-03-09T174642.csv"), get_labels("ACSDP5Y2019.DP05_metadata_2021-03-09T174642.csv")) %>% 
+  select(variable_c, a, b, c ,d, e)
+```
+
+
+
+
+
