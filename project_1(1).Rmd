@@ -41,29 +41,41 @@ The new series seems to have the same amount of peaks and valleys as the origina
 
 
 ```{r}
-thing1 <- ar(lynx %>% log10()) 
+tseries::adf.test(lynx %>% log10)
+
+thing1 <- arima(lynx %>% log10(), c(11, 0, 0)) 
 
 thing1 %>% summary()
 
 Box.test(thing1$resid, lag = 24, type = "Ljung-Box")
 
-tseries::adf.test(thing1$resid[12:114])
+
 
 thing1$resid %>% plot()
+thing1$resid[12:114] %>% acf()
+
+thing1 %>% AIC()
+
 ```
 
 
 
 ```{r}
+tseries::adf.test(lynx %>% log10)
+
 thing2 <- arima(lynx %>% log10(), c(2, 0, 3))
 
 thing2 %>% summary()
 
 Box.test(thing2$resid, lag = 24, type = "Ljung-Box")
 
-tseries::adf.test(thing2$resid[12:114])
+
 
 thing2$residuals %>% plot()
+thing2$residuals[12:114] %>% acf()
+
+thing2 %>% AIC()
+
 ```
 
 
