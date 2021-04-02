@@ -1,6 +1,6 @@
 ---
 title: "Time Series Project 1 "
-author: "PUT YOUR NAME HERE"
+author: "Gerry, Jorge, Gianni"
 output: pdf_document
 ---
 
@@ -25,15 +25,22 @@ For this part of the project, we are going to work with data on lynx. Specifical
   * In a paper by Tong in 1977, the lynx data was fit with an AR(11) model. I want you to fit an AR(11) model to the data using the maximum likelihood method. Specifically, you want to use the `ar()` function like we are used to doing. Luckily, the best model is chosen to be an AR model of order 11 by default. Also, assess how the model fit. In addition to the usual methods, we can add a new tool to our toolbox. The Ljung-Box test is a statistical test to assess whether or not a series is white-noise. If the p-value is less than a nominal 0.05 level, then it is not white noise and if it is greater than 0.05, then it can't be concluded that it's not white-noise. You'll want to run the following code `Box.test(data, lag = 24, type = "Ljung-Box")`
   * Another model that has been suggested is an ARMA(2,3). Fit an ARMA(2,3) model to the data and assess the fit.
   * Compare and contrast the two model fits.
+  
+  
 ```{r}
+library(tidyverse)
+
 lynx %>% plot()
+
 lynx %>% acf()
 ```
 
 The data appears to be lacking in overall trend with a seasonal trend that appears to go up to a peak, then fall back down to around 200 every 10 or so years. This trend seems to vary with a larger peak happening every 4th time and smaller peaks occurring the other three times in the cycle. This data appears to be lacking in stationary as there is an seasonal trend and also looking at the corellorgram there are statistically significant correlations negative around 5 and 15 years, and positively around 10 and 20 years. 
 ```{r}
 lynx %>% log10() %>% plot()
+
 lynx %>% log10() %>% acf()
+
 ```
 
 The new series seems to have the same amount of peaks and valleys as the original series, however instead of starting low and rising up, this series has more of the shape of a sin wave where it starts in the middle and goes up and down. The seasonal pattern seems to have remained but the cycle extreme peaks seem to have disappeared. The correlogram looks almost the same, some of the correlations are stronger than before, however they all say the same thing as before. 
@@ -43,7 +50,9 @@ The new series seems to have the same amount of peaks and valleys as the origina
 ```{r}
 tseries::adf.test(lynx %>% log10)
 
-thing1 <- arima(lynx %>% log10(), c(11, 0, 0)) 
+thing1 <- ar(lynx %>% log10())
+
+thing1 <- arima(lynx %>% log10(), c(11, 0, 0))
 
 thing1 %>% summary()
 
@@ -61,7 +70,6 @@ thing1 %>% AIC()
 
 
 ```{r}
-tseries::adf.test(lynx %>% log10)
 
 thing2 <- arima(lynx %>% log10(), c(2, 0, 3))
 
@@ -89,6 +97,41 @@ This next dataset we are going to work with is the wages data. Specifically, the
   * Fit an ARIMA(2,1,1) and assess the fit.
   
   
+```{r}
+library(tswge)
+data("wages")
+
+tseries::adf.test(wages)
+
+wages %>% plot()
+wages %>% acf()
+wages %>% pacf()
+
+tseries::adf.test(wages %>% diff())
+
+diff(wages) %>% plot()
+wages %>% diff %>% acf()
+wages %>% diff() %>% pacf()
+
+thing3 <- wages %>% diff() %>% arima(c(2, 0, 1))
+
+thing3 %>% summary()
+thing3$residuals %>% acf()
+thing3$residuals %>% pacf
+Box.test(thing3$resid, lag = 24, type = "Ljung-Box")
+thing3 %>% AIC()
+
+
+thing4 <- wages %>% diff() %>% arima(c(2, 1, 1))
+thing4 %>% summary()
+thing4$residuals %>% acf()
+thing4$residuals %>% pacf()
+Box.test(thing4$resid, lag = 24, type = "Ljung-Box")
+thing4 %>% AIC()
+
+
+```
+
 
 ## Choose Your Own
 
@@ -96,6 +139,12 @@ In this part of the project, I want you to pick a dataset of your choosing and p
 
 
 
+```{r}
+vaccent <- ACS %>% 
+  filter(county == "Cumberland ") %>% 
+  select(DP04_0003E) %>% 
+  ts()
+```
 
 
 

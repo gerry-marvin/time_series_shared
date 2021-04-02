@@ -83,6 +83,7 @@ DC_2018 <- collect(2018, "DP05", geometry = TRUE)
 DC_2019 <- collect(2019, "DP05", geometry = TRUE)
 ```
 
+
 ```{r}
 ACS <- bind_cols(
 bind_rows(SC_2009, SC_2010, SC_2011, SC_2012, SC_2013, SC_2014, SC_2015, SC_2016, SC_2017, SC_2018, SC_2019
